@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
 Generate index.html for booking-linebot-template.
-Includes both Code.gs and gas_index.html embedded via JSON.
+Includes both Code.gs and gas_index.html safely escaped for script tags.
 Provides tab switching, instant code customization, and one-click copy for both!
 """
 
@@ -13,8 +13,9 @@ def main():
     code_gs_content = (base_dir / "Code.gs").read_text(encoding="utf-8")
     gas_index_content = (base_dir / "gas_index.html").read_text(encoding="utf-8")
 
-    raw_code_gs_json = json.dumps(code_gs_content)
-    raw_gas_index_json = json.dumps(gas_index_content)
+    # Critical: escape '</' to '<\/' so browser HTML parser does not prematurely close the enclosing <script> tag!
+    raw_code_gs_json = json.dumps(code_gs_content).replace("</", r"<\/")
+    raw_gas_index_json = json.dumps(gas_index_content).replace("</", r"<\/")
 
     html_template = r"""<!DOCTYPE html>
 <html lang="zh-TW" class="scroll-smooth">
@@ -582,15 +583,15 @@ def main():
     // Configurator Logic
     function getFormValues() {
       return {
-        school: document.getElementById('cfg_school').value.trim() || '竹光國民中學',
-        unit: document.getElementById('cfg_unit').value.trim() || '教務處資訊組',
-        botname: document.getElementById('cfg_botname').value.trim() || '校園借用小幫手',
-        contact: document.getElementById('cfg_contact').value.trim() || '資訊組分機 215 / 設備組分機 214',
-        semester: document.getElementById('cfg_semester').value.trim() || '2026-08-30',
-        apiUrl: document.getElementById('cfg_api_url').value.trim() || '',
-        webUrl: document.getElementById('cfg_web_url').value.trim() || '',
-        geminiKey: document.getElementById('cfg_gemini_key').value.trim() || '填入您的_GEMINI_API_KEY',
-        lineToken: document.getElementById('cfg_line_token').value.trim() || '填入您的_LINE_CHANNEL_ACCESS_TOKEN'
+        school: (document.getElementById('cfg_school') ? document.getElementById('cfg_school').value.trim() : '') || '竹光國民中學',
+        unit: (document.getElementById('cfg_unit') ? document.getElementById('cfg_unit').value.trim() : '') || '教務處資訊組',
+        botname: (document.getElementById('cfg_botname') ? document.getElementById('cfg_botname').value.trim() : '') || '校園借用小幫手',
+        contact: (document.getElementById('cfg_contact') ? document.getElementById('cfg_contact').value.trim() : '') || '資訊組分機 215 / 設備組分機 214',
+        semester: (document.getElementById('cfg_semester') ? document.getElementById('cfg_semester').value.trim() : '') || '2026-08-30',
+        apiUrl: (document.getElementById('cfg_api_url') ? document.getElementById('cfg_api_url').value.trim() : '') || '',
+        webUrl: (document.getElementById('cfg_web_url') ? document.getElementById('cfg_web_url').value.trim() : '') || '',
+        geminiKey: (document.getElementById('cfg_gemini_key') ? document.getElementById('cfg_gemini_key').value.trim() : '') || '填入您的_GEMINI_API_KEY',
+        lineToken: (document.getElementById('cfg_line_token') ? document.getElementById('cfg_line_token').value.trim() : '') || '填入您的_LINE_CHANNEL_ACCESS_TOKEN'
       };
     }
 
@@ -622,13 +623,13 @@ def main():
       const desc = document.getElementById('fileDescText');
 
       if (tab === 'code') {
-        btnCode.className = 'px-3.5 py-1.5 rounded-lg bg-sky-600 text-white font-bold text-xs flex items-center gap-1.5 transition';
-        btnHtml.className = 'px-3.5 py-1.5 rounded-lg text-slate-400 hover:text-white font-bold text-xs flex items-center gap-1.5 transition';
-        desc.textContent = '📌 說明：這是 Google Apps Script 後端程式碼，請貼至 Apps Script 專案的 Code.gs。';
+        if (btnCode) btnCode.className = 'px-3.5 py-1.5 rounded-lg bg-sky-600 text-white font-bold text-xs flex items-center gap-1.5 transition';
+        if (btnHtml) btnHtml.className = 'px-3.5 py-1.5 rounded-lg text-slate-400 hover:text-white font-bold text-xs flex items-center gap-1.5 transition';
+        if (desc) desc.textContent = '📌 說明：這是 Google Apps Script 後端程式碼，請貼至 Apps Script 專案的 Code.gs。';
       } else {
-        btnHtml.className = 'px-3.5 py-1.5 rounded-lg bg-indigo-600 text-white font-bold text-xs flex items-center gap-1.5 transition';
-        btnCode.className = 'px-3.5 py-1.5 rounded-lg text-slate-400 hover:text-white font-bold text-xs flex items-center gap-1.5 transition';
-        desc.textContent = '📌 說明：這是 Apps Script 內建 Web 看板前端，請在 Apps Script 新增名為 index 的 HTML 檔案並貼上。';
+        if (btnHtml) btnHtml.className = 'px-3.5 py-1.5 rounded-lg bg-indigo-600 text-white font-bold text-xs flex items-center gap-1.5 transition';
+        if (btnCode) btnCode.className = 'px-3.5 py-1.5 rounded-lg text-slate-400 hover:text-white font-bold text-xs flex items-center gap-1.5 transition';
+        if (desc) desc.textContent = '📌 說明：這是 Apps Script 內建 Web 看板前端，請在 Apps Script 新增名為 index 的 HTML 檔案並貼上。';
       }
       updateAllOutputs();
     }
@@ -637,10 +638,12 @@ def main():
       const code = generateCustomizedCode();
       const html = generateCustomizedGasIndex();
       const display = document.getElementById('codeDisplay');
-      if (currentTab === 'code') {
-        display.textContent = code;
-      } else {
-        display.textContent = html;
+      if (display) {
+        if (currentTab === 'code') {
+          display.textContent = code;
+        } else {
+          display.textContent = html;
+        }
       }
     }
 
@@ -650,11 +653,11 @@ def main():
       navigator.clipboard.writeText(text).then(() => {
         const btnText = document.getElementById('copyBtnText');
         const icon = document.getElementById('copyIcon');
-        btnText.textContent = `已成功複製 ${filename}！`;
-        icon.className = 'fa-solid fa-check text-emerald-300';
+        if (btnText) btnText.textContent = `已成功複製 ${filename}！`;
+        if (icon) icon.className = 'fa-solid fa-check text-emerald-300';
         setTimeout(() => {
-          btnText.textContent = '複製目前分頁程式碼';
-          icon.className = 'fa-regular fa-copy';
+          if (btnText) btnText.textContent = '複製目前分頁程式碼';
+          if (icon) icon.className = 'fa-regular fa-copy';
         }, 2500);
       });
     }
@@ -671,7 +674,10 @@ def main():
       });
     }
 
+    // Call immediately and also on events
+    updateAllOutputs();
     window.addEventListener('DOMContentLoaded', updateAllOutputs);
+    window.addEventListener('load', updateAllOutputs);
   </script>
 
 </body>
