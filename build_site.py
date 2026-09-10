@@ -1,12 +1,22 @@
 # -*- coding: utf-8 -*-
 """
 Generate index.html for booking-linebot-template.
-A complete, interactive landing page & configurator for School IT & Venue Booking LINE Bot.
+Includes both Code.gs and gas_index.html embedded via JSON.
+Provides tab switching, instant code customization, and one-click copy for both!
 """
 
-import html
+import json
+from pathlib import Path
 
-HTML_TEMPLATE = r"""<!DOCTYPE html>
+def main():
+    base_dir = Path("/Users/naichengchen/projects/booking-linebot-template")
+    code_gs_content = (base_dir / "Code.gs").read_text(encoding="utf-8")
+    gas_index_content = (base_dir / "gas_index.html").read_text(encoding="utf-8")
+
+    raw_code_gs_json = json.dumps(code_gs_content)
+    raw_gas_index_json = json.dumps(gas_index_content)
+
+    html_template = r"""<!DOCTYPE html>
 <html lang="zh-TW" class="scroll-smooth">
 <head>
   <meta charset="UTF-8">
@@ -22,18 +32,6 @@ HTML_TEMPLATE = r"""<!DOCTYPE html>
         extend: {
           fontFamily: {
             sans: ['"Plus Jakarta Sans"', '"Noto Sans TC"', 'sans-serif'],
-          },
-          colors: {
-            brand: {
-              50: '#f0f9ff',
-              100: '#e0f2fe',
-              200: '#bae6fd',
-              500: '#0ea5e9',
-              600: '#0284c7',
-              700: '#0369a1',
-              800: '#075985',
-              900: '#0c4a6e',
-            }
           }
         }
       }
@@ -334,16 +332,16 @@ HTML_TEMPLATE = r"""<!DOCTYPE html>
     </div>
   </section>
 
-  <!-- Interactive Configurator -->
+  <!-- Interactive Configurator (Dual-Tab: Code.gs & index.html) -->
   <section id="configurator" class="py-20 bg-white border-t border-slate-200">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="text-center max-w-2xl mx-auto mb-12 space-y-3">
         <div class="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-sky-100 text-sky-800 text-xs font-bold">
           <i class="fa-solid fa-sliders"></i>
-          <span>客製化程式碼產生器</span>
+          <span>雙前端與後端客製化產生器</span>
         </div>
-        <p class="text-3xl font-black text-slate-900 tracking-tight">填入學校參數，一鍵生成 Code.gs</p>
-        <p class="text-slate-600 text-sm">輸入您的金鑰與學校設定，系統將即時組裝出完整的 Google Apps Script 原始碼供您複製！</p>
+        <p class="text-3xl font-black text-slate-900 tracking-tight">填入學校參數，一鍵生成 Code.gs 與 index.html</p>
+        <p class="text-slate-600 text-sm">輸入您的金鑰與學校設定，系統將即時組裝出後端核心與前端 Web 控制台兩份原始碼供您複製！</p>
       </div>
 
       <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
@@ -357,70 +355,96 @@ HTML_TEMPLATE = r"""<!DOCTYPE html>
 
           <div>
             <label class="block text-xs font-bold text-slate-700 mb-1">學校名稱</label>
-            <input type="text" id="cfg_school" value="竹光國民中學" class="w-full px-3.5 py-2 rounded-xl border border-slate-300 text-xs font-semibold focus:ring-2 focus:ring-sky-500 focus:outline-none" oninput="updateGeneratedCode()">
+            <input type="text" id="cfg_school" value="竹光國民中學" class="w-full px-3.5 py-2 rounded-xl border border-slate-300 text-xs font-semibold focus:ring-2 focus:ring-sky-500 focus:outline-none" oninput="updateAllOutputs()">
           </div>
 
           <div>
             <label class="block text-xs font-bold text-slate-700 mb-1">主責單位名稱</label>
-            <input type="text" id="cfg_unit" value="教務處資訊組" class="w-full px-3.5 py-2 rounded-xl border border-slate-300 text-xs font-semibold focus:ring-2 focus:ring-sky-500 focus:outline-none" oninput="updateGeneratedCode()">
+            <input type="text" id="cfg_unit" value="教務處資訊組" class="w-full px-3.5 py-2 rounded-xl border border-slate-300 text-xs font-semibold focus:ring-2 focus:ring-sky-500 focus:outline-none" oninput="updateAllOutputs()">
           </div>
 
           <div>
             <label class="block text-xs font-bold text-slate-700 mb-1">機器人稱呼 (BOT_NAME)</label>
-            <input type="text" id="cfg_botname" value="校園借用小幫手" class="w-full px-3.5 py-2 rounded-xl border border-slate-300 text-xs font-semibold focus:ring-2 focus:ring-sky-500 focus:outline-none" oninput="updateGeneratedCode()">
+            <input type="text" id="cfg_botname" value="校園借用小幫手" class="w-full px-3.5 py-2 rounded-xl border border-slate-300 text-xs font-semibold focus:ring-2 focus:ring-sky-500 focus:outline-none" oninput="updateAllOutputs()">
           </div>
 
           <div>
             <label class="block text-xs font-bold text-slate-700 mb-1">管理單位聯絡電話 / 分機</label>
-            <input type="text" id="cfg_contact" value="資訊組分機 215 / 設備組分機 214" class="w-full px-3.5 py-2 rounded-xl border border-slate-300 text-xs font-semibold focus:ring-2 focus:ring-sky-500 focus:outline-none" oninput="updateGeneratedCode()">
+            <input type="text" id="cfg_contact" value="資訊組分機 215 / 設備組分機 214" class="w-full px-3.5 py-2 rounded-xl border border-slate-300 text-xs font-semibold focus:ring-2 focus:ring-sky-500 focus:outline-none" oninput="updateAllOutputs()">
           </div>
 
           <div>
             <label class="block text-xs font-bold text-slate-700 mb-1">本學期起算日 (YYYY-MM-DD)</label>
-            <input type="text" id="cfg_semester" value="2026-08-30" class="w-full px-3.5 py-2 rounded-xl border border-slate-300 text-xs font-mono font-semibold focus:ring-2 focus:ring-sky-500 focus:outline-none" oninput="updateGeneratedCode()">
+            <input type="text" id="cfg_semester" value="2026-08-30" class="w-full px-3.5 py-2 rounded-xl border border-slate-300 text-xs font-mono font-semibold focus:ring-2 focus:ring-sky-500 focus:outline-none" oninput="updateAllOutputs()">
             <span class="text-[10px] text-slate-500 mt-0.5 block">用於個人本學期借用累計次數統計</span>
           </div>
 
           <div class="pt-2 border-t border-slate-200">
             <label class="block text-xs font-bold text-slate-700 mb-1">學校借用系統 API 網址 (可選)</label>
-            <input type="text" id="cfg_api_url" placeholder="https://your-school.edu.tw/api/bookings" class="w-full px-3.5 py-2 rounded-xl border border-slate-300 text-xs font-mono focus:ring-2 focus:ring-sky-500 focus:outline-none" oninput="updateGeneratedCode()">
+            <input type="text" id="cfg_api_url" placeholder="https://your-school.edu.tw/api/bookings" class="w-full px-3.5 py-2 rounded-xl border border-slate-300 text-xs font-mono focus:ring-2 focus:ring-sky-500 focus:outline-none" oninput="updateAllOutputs()">
             <span class="text-[10px] text-slate-500 mt-0.5 block">留空時將直接使用 Google 試算表作為資料庫</span>
           </div>
 
           <div>
             <label class="block text-xs font-bold text-slate-700 mb-1">線上借用系統前台網址 (可選)</label>
-            <input type="text" id="cfg_web_url" placeholder="https://your-school.edu.tw/booking" class="w-full px-3.5 py-2 rounded-xl border border-slate-300 text-xs font-mono focus:ring-2 focus:ring-sky-500 focus:outline-none" oninput="updateGeneratedCode()">
+            <input type="text" id="cfg_web_url" placeholder="https://your-school.edu.tw/booking" class="w-full px-3.5 py-2 rounded-xl border border-slate-300 text-xs font-mono focus:ring-2 focus:ring-sky-500 focus:outline-none" oninput="updateAllOutputs()">
           </div>
 
           <div class="pt-2 border-t border-slate-200">
             <label class="block text-xs font-bold text-slate-700 mb-1">Gemini API Key</label>
-            <input type="password" id="cfg_gemini_key" placeholder="AIzaSy..." class="w-full px-3.5 py-2 rounded-xl border border-slate-300 text-xs font-mono focus:ring-2 focus:ring-sky-500 focus:outline-none" oninput="updateGeneratedCode()">
+            <input type="password" id="cfg_gemini_key" placeholder="AIzaSy..." class="w-full px-3.5 py-2 rounded-xl border border-slate-300 text-xs font-mono focus:ring-2 focus:ring-sky-500 focus:outline-none" oninput="updateAllOutputs()">
           </div>
 
           <div>
             <label class="block text-xs font-bold text-slate-700 mb-1">LINE Channel Access Token</label>
-            <input type="password" id="cfg_line_token" placeholder="eyJhbGci..." class="w-full px-3.5 py-2 rounded-xl border border-slate-300 text-xs font-mono focus:ring-2 focus:ring-sky-500 focus:outline-none" oninput="updateGeneratedCode()">
+            <input type="password" id="cfg_line_token" placeholder="eyJhbGci..." class="w-full px-3.5 py-2 rounded-xl border border-slate-300 text-xs font-mono focus:ring-2 focus:ring-sky-500 focus:outline-none" oninput="updateAllOutputs()">
           </div>
 
         </div>
 
-        <!-- Generated Code Preview -->
+        <!-- Generated Code Preview with Dual-Tab -->
         <div class="lg:col-span-7 space-y-3">
-          <div class="flex items-center justify-between bg-slate-900 text-white px-5 py-3 rounded-t-2xl">
-            <div class="flex items-center space-x-2">
-              <span class="w-3 h-3 rounded-full bg-rose-500 inline-block"></span>
-              <span class="w-3 h-3 rounded-full bg-amber-500 inline-block"></span>
-              <span class="w-3 h-3 rounded-full bg-emerald-500 inline-block"></span>
-              <span class="text-xs font-mono text-slate-300 ml-2">Code.gs (即時生成)</span>
+          
+          <!-- Top Bar: Tabs & Copy Actions -->
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between bg-slate-900 text-white px-4 py-3 rounded-t-2xl gap-3">
+            
+            <!-- Tab Buttons -->
+            <div class="flex items-center gap-1.5 bg-slate-950 p-1 rounded-xl border border-slate-800">
+              <button id="tabBtnCode" onclick="switchPreviewTab('code')" class="px-3.5 py-1.5 rounded-lg bg-sky-600 text-white font-bold text-xs flex items-center gap-1.5 transition">
+                <i class="fa-solid fa-code"></i>
+                <span>1. 後端 Code.gs</span>
+              </button>
+              <button id="tabBtnHtml" onclick="switchPreviewTab('html')" class="px-3.5 py-1.5 rounded-lg text-slate-400 hover:text-white font-bold text-xs flex items-center gap-1.5 transition">
+                <i class="fa-solid fa-window-maximize"></i>
+                <span>2. 前端 index.html (Web 控制台)</span>
+              </button>
             </div>
-            <button onclick="copyGeneratedCode()" class="px-3.5 py-1.5 rounded-lg bg-sky-600 hover:bg-sky-500 text-white text-xs font-bold transition flex items-center space-x-1.5 shadow">
-              <i class="fa-regular fa-copy" id="copyIcon"></i>
-              <span id="copyBtnText">複製全部程式碼</span>
-            </button>
+
+            <!-- Copy Buttons -->
+            <div class="flex items-center gap-2">
+              <button onclick="copyCurrentCode()" class="px-3.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold transition flex items-center space-x-1.5 shadow">
+                <i class="fa-regular fa-copy" id="copyIcon"></i>
+                <span id="copyBtnText">複製目前分頁程式碼</span>
+              </button>
+            </div>
+
           </div>
+
+          <!-- Code Box -->
           <div class="bg-slate-950 p-4 rounded-b-2xl border border-slate-800 text-slate-200 font-mono text-[11px] overflow-x-auto max-h-[560px]">
             <pre><code id="codeDisplay"></code></pre>
           </div>
+
+          <!-- Sub-action Helpers -->
+          <div class="flex flex-wrap items-center justify-between text-xs text-slate-500 px-2">
+            <div id="fileDescText">📌 說明：這是 Google Apps Script 後端程式碼，請貼至 Apps Script 專案的 Code.gs。</div>
+            <div class="flex gap-2">
+              <button onclick="copyGeneratedCode()" class="text-sky-600 hover:underline font-semibold">快速複製 Code.gs</button>
+              <span>•</span>
+              <button onclick="copyGeneratedGasIndex()" class="text-sky-600 hover:underline font-semibold">快速複製 index.html</button>
+            </div>
+          </div>
+
         </div>
 
       </div>
@@ -436,13 +460,14 @@ HTML_TEMPLATE = r"""<!DOCTYPE html>
       </div>
 
       <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
-        
         <!-- Step 1 -->
         <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm relative space-y-3">
           <div class="w-8 h-8 rounded-full bg-sky-100 text-sky-700 font-black text-sm flex items-center justify-center">1</div>
           <h3 class="font-bold text-slate-900 text-base">建立試算表貼上程式碼</h3>
           <p class="text-xs text-slate-600 leading-relaxed">
-            新建 Google 試算表，點擊選單「擴充功能」➔「Apps Script」，將上方生成的 <code class="text-sky-700 bg-sky-50 px-1 py-0.5 rounded">Code.gs</code> 貼上並儲存。
+            新建 Google 試算表，點擊選單「擴充功能」➔「Apps Script」：
+            <br>1. 將分頁一 <code class="text-sky-700 bg-sky-50 px-1 py-0.5 rounded">Code.gs</code> 貼上。
+            <br>2. 點擊「+」新增 HTML 檔案命名為 <code class="text-sky-700 bg-sky-50 px-1 py-0.5 rounded">index</code>，貼上分頁二的前端代碼！
           </p>
         </div>
 
@@ -451,7 +476,7 @@ HTML_TEMPLATE = r"""<!DOCTYPE html>
           <div class="w-8 h-8 rounded-full bg-sky-100 text-sky-700 font-black text-sm flex items-center justify-center">2</div>
           <h3 class="font-bold text-slate-900 text-base">執行一鍵初始化</h3>
           <p class="text-xs text-slate-600 leading-relaxed">
-            在 Apps Script 函式下拉選單中選擇 <code class="text-sky-700 bg-sky-50 px-1 py-0.5 rounded">initBookingSystemSheet</code> 並點擊「執行」，自動為試算表建立借用總表、設備清單與示範資料！
+            在 Apps Script 函式下拉選單中選擇 <code class="text-sky-700 bg-sky-50 px-1 py-0.5 rounded">initBookingSystemSheet</code> 並點擊「執行」，自動為試算表建立借用總表、設備清單、場地清單與示範資料！
           </p>
         </div>
 
@@ -467,12 +492,11 @@ HTML_TEMPLATE = r"""<!DOCTYPE html>
         <!-- Step 4 -->
         <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm relative space-y-3">
           <div class="w-8 h-8 rounded-full bg-sky-100 text-sky-700 font-black text-sm flex items-center justify-center">4</div>
-          <h3 class="font-bold text-slate-900 text-base">設定每日定時同步排程</h3>
+          <h3 class="font-bold text-slate-900 text-base">設定每日定時自動同步排程</h3>
           <p class="text-xs text-slate-600 leading-relaxed">
             在 Apps Script 左側點擊鬧鐘圖示「觸發條件」，新增一個「時間驅動」觸發器，指定每天早上 07:00 執行 <code class="text-sky-700 bg-sky-50 px-1 py-0.5 rounded">dailySyncBookingApi</code> 即可自動同步！
           </p>
         </div>
-
       </div>
     </div>
   </section>
@@ -492,9 +516,14 @@ HTML_TEMPLATE = r"""<!DOCTYPE html>
     </div>
   </footer>
 
-  <!-- Interactive Simulator & Configurator Logic -->
+  <!-- 內嵌原始程式碼 JSON (透過 Python 渲染時填入) -->
   <script>
-    // Simulator Logic
+    const RAW_CODE_GS = __RAW_CODE_GS__;
+    const RAW_GAS_INDEX = __RAW_GAS_INDEX__;
+
+    let currentTab = 'code'; // 'code' or 'html'
+
+    // Simulator Responses
     const simulatorResponses = {
       equipment: {
         user: "#查設備",
@@ -524,7 +553,6 @@ HTML_TEMPLATE = r"""<!DOCTYPE html>
 
       const chat = document.getElementById('chatStream');
 
-      // Add user message
       const userHtml = `
         <div class="flex justify-end">
           <div class="bg-[#5978b8] text-white p-2.5 chat-bubble-user max-w-[85%] shadow-sm">
@@ -535,7 +563,6 @@ HTML_TEMPLATE = r"""<!DOCTYPE html>
       chat.insertAdjacentHTML('beforeend', userHtml);
       chat.scrollTop = chat.scrollHeight;
 
-      // Add bot reply with slight delay
       setTimeout(() => {
         const botHtml = `
           <div class="flex items-start space-x-2">
@@ -567,97 +594,92 @@ HTML_TEMPLATE = r"""<!DOCTYPE html>
       };
     }
 
-    function buildCodeString(v) {
-      return `/**
- * ============================================================================
- * 🏫 全國校園資訊設備與場地借用小幫手 LINE Bot・通用開源範本 (GAS + Gemini RAG)
- * ============================================================================
- */
-
-const CONFIG = {
-  GEMINI_API_KEY: '${v.geminiKey}',
-  LINE_ACCESS_TOKEN: '${v.lineToken}',
-
-  SCHOOL_NAME: '${v.school}',
-  UNIT_NAME: '${v.unit}',
-  BOT_NAME: '${v.botname}',
-  ADMIN_CONTACT: '${v.contact}',
-  SEMESTER_START_DATE: '${v.semester}',
-
-  BOOKING_API_URL: '${v.apiUrl}',
-  BOOKING_WEB_URL: '${v.webUrl}',
-
-  SHEET_BOOKINGS: '借用記錄總表',
-  SHEET_EQUIPMENT: '設備清單',
-  SHEET_VENUES: '場地清單',
-  SHEET_FAQ: '借用規章與常見問答',
-  SHEET_LOGS: '查詢與操作紀錄',
-  ADMIN_PASSWORD: ''
-};
-
-// ...（其餘 600 行完整邏輯已內建於開源庫 Code.gs）...
-// 包含 dailySyncBookingApi()、handleEquipmentQuery()、handleVenueQuery() 與 handleTeacherStatsQuery()`;
-    }
-
-    // Full Code for clipboard
-    let fullRawCode = "";
-
-    function updateGeneratedCode() {
+    function generateCustomizedCode() {
       const v = getFormValues();
-      const preview = buildCodeString(v);
-      document.getElementById('codeDisplay').textContent = preview;
+      let code = RAW_CODE_GS;
+      code = code.replace(/GEMINI_API_KEY:\s*'.*?'/, `GEMINI_API_KEY: '${v.geminiKey}'`);
+      code = code.replace(/LINE_ACCESS_TOKEN:\s*'.*?'/, `LINE_ACCESS_TOKEN: '${v.lineToken}'`);
+      code = code.replace(/SCHOOL_NAME:\s*'.*?'/, `SCHOOL_NAME: '${v.school}'`);
+      code = code.replace(/UNIT_NAME:\s*'.*?'/, `UNIT_NAME: '${v.unit}'`);
+      code = code.replace(/BOT_NAME:\s*'.*?'/, `BOT_NAME: '${v.botname}'`);
+      code = code.replace(/ADMIN_CONTACT:\s*'.*?'/, `ADMIN_CONTACT: '${v.contact}'`);
+      code = code.replace(/SEMESTER_START_DATE:\s*'.*?'/, `SEMESTER_START_DATE: '${v.semester}'`);
+      code = code.replace(/BOOKING_API_URL:\s*'.*?'/, `BOOKING_API_URL: '${v.apiUrl}'`);
+      code = code.replace(/BOOKING_WEB_URL:\s*'.*?'/, `BOOKING_WEB_URL: '${v.webUrl}'`);
+      return code;
     }
 
-    async function loadFullCodeAndInit() {
-      try {
-        const resp = await fetch('Code.gs');
-        if (resp.ok) {
-          fullRawCode = await resp.text();
-        }
-      } catch(e) {
-        console.warn('Could not fetch Code.gs directly:', e);
-      }
-      updateGeneratedCode();
-    }
-
-    function copyGeneratedCode() {
+    function generateCustomizedGasIndex() {
       const v = getFormValues();
-      let targetCode = fullRawCode;
-      if (!targetCode) {
-        targetCode = document.getElementById('codeDisplay').textContent;
+      let html = RAW_GAS_INDEX;
+      return html;
+    }
+
+    function switchPreviewTab(tab) {
+      currentTab = tab;
+      const btnCode = document.getElementById('tabBtnCode');
+      const btnHtml = document.getElementById('tabBtnHtml');
+      const desc = document.getElementById('fileDescText');
+
+      if (tab === 'code') {
+        btnCode.className = 'px-3.5 py-1.5 rounded-lg bg-sky-600 text-white font-bold text-xs flex items-center gap-1.5 transition';
+        btnHtml.className = 'px-3.5 py-1.5 rounded-lg text-slate-400 hover:text-white font-bold text-xs flex items-center gap-1.5 transition';
+        desc.textContent = '📌 說明：這是 Google Apps Script 後端程式碼，請貼至 Apps Script 專案的 Code.gs。';
       } else {
-        // Replace config fields in full code
-        targetCode = targetCode.replace(/GEMINI_API_KEY:\s*'.*?'/, `GEMINI_API_KEY: '${v.geminiKey}'`);
-        targetCode = targetCode.replace(/LINE_ACCESS_TOKEN:\s*'.*?'/, `LINE_ACCESS_TOKEN: '${v.lineToken}'`);
-        targetCode = targetCode.replace(/SCHOOL_NAME:\s*'.*?'/, `SCHOOL_NAME: '${v.school}'`);
-        targetCode = targetCode.replace(/UNIT_NAME:\s*'.*?'/, `UNIT_NAME: '${v.unit}'`);
-        targetCode = targetCode.replace(/BOT_NAME:\s*'.*?'/, `BOT_NAME: '${v.botname}'`);
-        targetCode = targetCode.replace(/ADMIN_CONTACT:\s*'.*?'/, `ADMIN_CONTACT: '${v.contact}'`);
-        targetCode = targetCode.replace(/SEMESTER_START_DATE:\s*'.*?'/, `SEMESTER_START_DATE: '${v.semester}'`);
-        targetCode = targetCode.replace(/BOOKING_API_URL:\s*'.*?'/, `BOOKING_API_URL: '${v.apiUrl}'`);
-        targetCode = targetCode.replace(/BOOKING_WEB_URL:\s*'.*?'/, `BOOKING_WEB_URL: '${v.webUrl}'`);
+        btnHtml.className = 'px-3.5 py-1.5 rounded-lg bg-indigo-600 text-white font-bold text-xs flex items-center gap-1.5 transition';
+        btnCode.className = 'px-3.5 py-1.5 rounded-lg text-slate-400 hover:text-white font-bold text-xs flex items-center gap-1.5 transition';
+        desc.textContent = '📌 說明：這是 Apps Script 內建 Web 看板前端，請在 Apps Script 新增名為 index 的 HTML 檔案並貼上。';
       }
+      updateAllOutputs();
+    }
 
-      navigator.clipboard.writeText(targetCode).then(() => {
+    function updateAllOutputs() {
+      const code = generateCustomizedCode();
+      const html = generateCustomizedGasIndex();
+      const display = document.getElementById('codeDisplay');
+      if (currentTab === 'code') {
+        display.textContent = code;
+      } else {
+        display.textContent = html;
+      }
+    }
+
+    function copyCurrentCode() {
+      const text = (currentTab === 'code') ? generateCustomizedCode() : generateCustomizedGasIndex();
+      const filename = (currentTab === 'code') ? 'Code.gs' : 'index.html';
+      navigator.clipboard.writeText(text).then(() => {
         const btnText = document.getElementById('copyBtnText');
         const icon = document.getElementById('copyIcon');
-        btnText.textContent = '已成功複製完整 Code.gs！';
+        btnText.textContent = `已成功複製 ${filename}！`;
         icon.className = 'fa-solid fa-check text-emerald-300';
         setTimeout(() => {
-          btnText.textContent = '複製全部程式碼';
+          btnText.textContent = '複製目前分頁程式碼';
           icon.className = 'fa-regular fa-copy';
         }, 2500);
       });
     }
 
-    window.addEventListener('DOMContentLoaded', loadFullCodeAndInit);
+    function copyGeneratedCode() {
+      navigator.clipboard.writeText(generateCustomizedCode()).then(() => {
+        alert('已複製 Code.gs 完整程式碼！');
+      });
+    }
+
+    function copyGeneratedGasIndex() {
+      navigator.clipboard.writeText(generateCustomizedGasIndex()).then(() => {
+        alert('已複製前端 index.html (Web 控制台) 完整程式碼！');
+      });
+    }
+
+    window.addEventListener('DOMContentLoaded', updateAllOutputs);
   </script>
 
 </body>
-</html>
-"""
+</html>"""
 
-with open("index.html", "w", encoding="utf-8") as f:
-    f.write(HTML_TEMPLATE)
+    final_html = html_template.replace("__RAW_CODE_GS__", raw_code_gs_json).replace("__RAW_GAS_INDEX__", raw_gas_index_json)
+    (base_dir / "index.html").write_text(final_html, encoding="utf-8")
+    print("Successfully built index.html! File size:", len(final_html))
 
-print("index.html generated successfully!")
+if __name__ == "__main__":
+    main()

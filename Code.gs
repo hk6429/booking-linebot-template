@@ -80,9 +80,14 @@ function doGet(e) {
     return ContentService.createTextOutput(JSON.stringify(result)).setMimeType(ContentService.MimeType.JSON);
   }
 
-  // 預設渲染儀表板 HTML
+  // 預設渲染儀表板 HTML（優先載入 index.html，相容 gas_index）
   try {
-    const template = HtmlService.createTemplateFromFile('gas_index');
+    let template;
+    try {
+      template = HtmlService.createTemplateFromFile('index');
+    } catch(err1) {
+      template = HtmlService.createTemplateFromFile('gas_index');
+    }
     template.schoolName = CONFIG.SCHOOL_NAME;
     template.unitName = CONFIG.UNIT_NAME;
     template.botName = CONFIG.BOT_NAME;
