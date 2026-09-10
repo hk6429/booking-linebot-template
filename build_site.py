@@ -1,0 +1,663 @@
+# -*- coding: utf-8 -*-
+"""
+Generate index.html for booking-linebot-template.
+A complete, interactive landing page & configurator for School IT & Venue Booking LINE Bot.
+"""
+
+import html
+
+HTML_TEMPLATE = r"""<!DOCTYPE html>
+<html lang="zh-TW" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>校園資訊設備與場地借用小幫手 LINE Bot・開源通用範本 (GAS + Gemini RAG + API 自動同步)</title>
+  <meta name="description" content="專為全台各級學校資訊組、設備組與教職員打造的智慧借用 LINE 助理。每日自動透過學校 API 同步預約記錄，隨手查設備、查場地排程，還能一鍵統計個人本學期借用頻率！">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Noto+Sans+TC:wght@400;500;700;900&display=swap" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', '"Noto Sans TC"', 'sans-serif'],
+          },
+          colors: {
+            brand: {
+              50: '#f0f9ff',
+              100: '#e0f2fe',
+              200: '#bae6fd',
+              500: '#0ea5e9',
+              600: '#0284c7',
+              700: '#0369a1',
+              800: '#075985',
+              900: '#0c4a6e',
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    pre code {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    }
+    .chat-bubble-user {
+      border-radius: 18px 18px 4px 18px;
+    }
+    .chat-bubble-bot {
+      border-radius: 18px 18px 18px 4px;
+    }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-800 antialiased selection:bg-sky-500 selection:text-white">
+
+  <!-- Navigation -->
+  <nav class="sticky top-0 z-40 bg-white/80 backdrop-blur-md border-b border-slate-200">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      <div class="flex items-center space-x-3">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-sky-600 to-indigo-600 flex items-center justify-center text-white shadow-md shadow-sky-500/20">
+          <i class="fa-solid fa-laptop-code text-lg"></i>
+        </div>
+        <div>
+          <span class="font-extrabold text-slate-900 tracking-tight text-lg">BookingBot</span>
+          <span class="text-xs px-2 py-0.5 rounded-full bg-sky-100 text-sky-700 font-bold ml-1.5">v1.0 學校借用開源版</span>
+        </div>
+      </div>
+      <div class="hidden md:flex items-center space-x-6 text-sm font-semibold text-slate-600">
+        <a href="#features" class="hover:text-sky-600 transition">三大核心功能</a>
+        <a href="#simulator" class="hover:text-sky-600 transition">LINE 對話模擬</a>
+        <a href="#configurator" class="hover:text-sky-600 transition">參數配置生成器</a>
+        <a href="#deploy" class="hover:text-sky-600 transition">5 分鐘部署教學</a>
+      </div>
+      <div class="flex items-center space-x-3">
+        <a href="https://github.com/hk6429/booking-linebot-template" target="_blank" class="inline-flex items-center space-x-2 px-3.5 py-2 rounded-xl bg-slate-900 text-white hover:bg-slate-800 text-xs font-bold transition shadow-sm">
+          <i class="fa-brands fa-github text-sm"></i>
+          <span>GitHub 開源</span>
+        </a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Hero Section -->
+  <section class="relative overflow-hidden pt-12 pb-20 lg:pt-20 lg:pb-28 bg-gradient-to-b from-white via-sky-50/40 to-slate-50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="text-center max-w-3xl mx-auto space-y-6">
+        <div class="inline-flex items-center space-x-2 px-3.5 py-1.5 rounded-full bg-sky-100 border border-sky-200 text-sky-800 text-xs font-bold tracking-wide">
+          <span class="flex h-2 w-2 rounded-full bg-sky-500 animate-ping"></span>
+          <span>為全校資訊組、設備組、總務處與教席量身打造</span>
+        </div>
+        <h1 class="text-4xl sm:text-5xl lg:text-6xl font-black text-slate-900 tracking-tight leading-[1.15]">
+          校園資訊設備與場地借用<br>
+          <span class="text-transparent bg-clip-text bg-gradient-to-r from-sky-600 via-indigo-600 to-sky-700">LINE Bot AI 智慧小幫手</span>
+        </h1>
+        <p class="text-lg text-slate-600 leading-relaxed font-normal">
+          每天自動抓取學校線上借用系統 API，並結合 Google 試算表與 Gemini 2.5 自然語言 RAG。老師用手機 LINE 隨時查平板車、筆電空檔、會議室與電腦教室排程，還能一鍵統計個人本學期借用頻率！
+        </p>
+
+        <div class="pt-4 flex flex-col sm:flex-row items-center justify-center gap-4">
+          <a href="#configurator" class="w-full sm:w-auto px-8 py-4 rounded-2xl bg-gradient-to-r from-sky-600 to-indigo-600 text-white font-bold text-base shadow-xl shadow-sky-500/25 hover:shadow-sky-500/40 hover:-translate-y-0.5 transition flex items-center justify-center space-x-2">
+            <i class="fa-solid fa-wand-magic-sparkles"></i>
+            <span>立即客製我的學校程式碼</span>
+          </a>
+          <a href="#simulator" class="w-full sm:w-auto px-7 py-4 rounded-2xl bg-white border border-slate-200 text-slate-700 font-bold text-base hover:bg-slate-50 transition flex items-center justify-center space-x-2">
+            <i class="fa-solid fa-mobile-screen-button text-sky-600"></i>
+            <span>試玩 LINE 查詢對話</span>
+          </a>
+        </div>
+
+        <!-- Metric Badges -->
+        <div class="pt-10 grid grid-cols-2 sm:grid-cols-4 gap-4 text-left">
+          <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+            <div class="text-2xl font-black text-sky-600">0 元</div>
+            <div class="text-xs font-semibold text-slate-500 mt-0.5">全套免費開源運行 (GAS)</div>
+          </div>
+          <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+            <div class="text-2xl font-black text-indigo-600">每日定時</div>
+            <div class="text-xs font-semibold text-slate-500 mt-0.5">自動同步校內 API 紀錄</div>
+          </div>
+          <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+            <div class="text-2xl font-black text-emerald-600">3 大查詢</div>
+            <div class="text-xs font-semibold text-slate-500 mt-0.5">設備、場地與個人統計</div>
+          </div>
+          <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+            <div class="text-2xl font-black text-amber-600">雙軌模式</div>
+            <div class="text-xs font-semibold text-slate-500 mt-0.5">精準快捷指令 + 自然語言</div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- Features Grid -->
+  <section id="features" class="py-20 bg-white border-t border-slate-200">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="text-center max-w-2xl mx-auto mb-16 space-y-3">
+        <h2 class="text-xs font-bold uppercase tracking-widest text-sky-600">Core Capabilities</h2>
+        <p class="text-3xl font-black text-slate-900 tracking-tight">專門解決學校借用排程痛點的三大引擎</p>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <!-- Feature 1 -->
+        <div class="rounded-3xl p-8 bg-gradient-to-b from-sky-50/50 to-white border border-sky-100 relative group hover:shadow-xl hover:border-sky-300 transition duration-300">
+          <div class="w-14 h-14 rounded-2xl bg-sky-600 text-white flex items-center justify-center text-2xl shadow-lg shadow-sky-600/30 mb-6">
+            <i class="fa-solid fa-boxes-stacked"></i>
+          </div>
+          <h3 class="text-xl font-bold text-slate-900 mb-3">1. 資訊設備借用查詢</h3>
+          <p class="text-slate-600 text-sm leading-relaxed mb-6">
+            隨時隨地查看今天或明天有誰借用了 iPad 行動學習車、Chromebook、教師筆電、投影機或 4K 相機。清楚列出借用人、使用節次與借用狀態，避免課堂上設備衝突！
+          </p>
+          <div class="bg-slate-100/80 rounded-xl p-3.5 text-xs text-slate-700 font-mono space-y-1">
+            <div class="text-sky-700 font-bold">💡 支援指令與語意：</div>
+            <div>• #查設備</div>
+            <div>• #設備 平板車</div>
+            <div>• 今天下午有空檔的相機嗎？</div>
+          </div>
+        </div>
+
+        <!-- Feature 2 -->
+        <div class="rounded-3xl p-8 bg-gradient-to-b from-indigo-50/50 to-white border border-indigo-100 relative group hover:shadow-xl hover:border-indigo-300 transition duration-300">
+          <div class="w-14 h-14 rounded-2xl bg-indigo-600 text-white flex items-center justify-center text-2xl shadow-lg shadow-indigo-600/30 mb-6">
+            <i class="fa-solid fa-landmark"></i>
+          </div>
+          <h3 class="text-xl font-bold text-slate-900 mb-3">2. 校園場地借用查詢</h3>
+          <p class="text-slate-600 text-sm leading-relaxed mb-6">
+            電腦教室(一/二)、創客自造教室、第一會議室、階梯視聽教室、室內體育館排程全天候線上掌握。支援指定教室時段空檔查詢，提醒開鎖與冷氣管理規範。
+          </p>
+          <div class="bg-slate-100/80 rounded-xl p-3.5 text-xs text-slate-700 font-mono space-y-1">
+            <div class="text-indigo-700 font-bold">💡 支援指令與語意：</div>
+            <div>• #查場地</div>
+            <div>• #場地 電腦教室</div>
+            <div>• 明天第一會議室第7節有人借嗎？</div>
+          </div>
+        </div>
+
+        <!-- Feature 3 -->
+        <div class="rounded-3xl p-8 bg-gradient-to-b from-emerald-50/50 to-white border border-emerald-100 relative group hover:shadow-xl hover:border-emerald-300 transition duration-300">
+          <div class="w-14 h-14 rounded-2xl bg-emerald-600 text-white flex items-center justify-center text-2xl shadow-lg shadow-emerald-600/30 mb-6">
+            <i class="fa-solid fa-chart-pie"></i>
+          </div>
+          <h3 class="text-xl font-bold text-slate-900 mb-3">3. 個人學期借用統計</h3>
+          <p class="text-slate-600 text-sm leading-relaxed mb-6">
+            全台首創！老師輸入姓名即可調閱本學期個人借用累計次數、品項借用頻率排行（如：iPad 車 12次、電腦教室 8次）及最近借用足跡，期末填寫教學成果報告超省力！
+          </p>
+          <div class="bg-slate-100/80 rounded-xl p-3.5 text-xs text-slate-700 font-mono space-y-1">
+            <div class="text-emerald-700 font-bold">💡 支援指令與語意：</div>
+            <div>• #查個人 陳乃誠</div>
+            <div>• #我的借用 林志強</div>
+            <div>• 我這學期總共借了幾次平板車？</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Sync Engine Callout -->
+      <div class="mt-12 rounded-3xl bg-slate-900 text-white p-8 sm:p-10 shadow-2xl relative overflow-hidden flex flex-col lg:flex-row items-center justify-between gap-8">
+        <div class="space-y-4 max-w-2xl">
+          <div class="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-sky-500/20 text-sky-300 text-xs font-bold border border-sky-500/30">
+            <i class="fa-solid fa-arrows-rotate"></i>
+            <span>每日定時同步機制 (Daily Auto-Sync)</span>
+          </div>
+          <h3 class="text-2xl sm:text-3xl font-black">免手動抄寫！直接橋接學校官方借用 API</h3>
+          <p class="text-slate-300 text-sm leading-relaxed">
+            透過 Google Apps Script 的「時間驅動觸發器 (Time-driven Trigger)」，系統每天早上 07:00 自動呼叫學校系統 API 抓取當日與近期借用名冊，寫入 Google 試算表快取，毫秒級回應老師提問，更免去學校主機被頻繁打爆的困擾！
+          </p>
+        </div>
+        <div class="bg-slate-800/80 border border-slate-700 rounded-2xl p-6 min-w-[280px] text-xs font-mono space-y-2">
+          <div class="text-sky-400 font-bold">// 支援各種學校 API 格式</div>
+          <div class="text-slate-400">GET https://your-school.edu.tw/api/bookings?date=2026-09-10</div>
+          <div class="text-emerald-400">✓ 自動去重比對 (Composite Key)</div>
+          <div class="text-emerald-400">✓ 離線時自動回退至 Google 試算表</div>
+          <div class="text-emerald-400">✓ 支援 LINE 手動輸入「#同步」強制刷新</div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- Interactive LINE Simulator -->
+  <section id="simulator" class="py-20 bg-slate-100 border-t border-slate-200">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="text-center max-w-2xl mx-auto mb-12 space-y-3">
+        <h2 class="text-xs font-bold uppercase tracking-widest text-sky-600">Interactive Simulator</h2>
+        <p class="text-3xl font-black text-slate-900 tracking-tight">體驗 LINE 智慧借用查詢互動</p>
+        <p class="text-slate-600 text-sm">點擊下方常見情境按鈕，立即在右側手機查看機器人真實回覆效果！</p>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+        
+        <!-- Left Buttons & Explanation -->
+        <div class="lg:col-span-6 space-y-4">
+          <h3 class="text-base font-bold text-slate-800 mb-2 flex items-center gap-2">
+            <i class="fa-solid fa-hand-pointer text-sky-600"></i>
+            <span>快速體驗情境按鈕：</span>
+          </h3>
+
+          <button onclick="simulateQuery('equipment')" class="w-full text-left p-4 bg-white hover:bg-sky-50 border border-slate-200 hover:border-sky-300 rounded-2xl shadow-sm transition flex items-center justify-between group">
+            <div>
+              <div class="font-bold text-slate-900 group-hover:text-sky-600 text-sm">💻 查詢今日資訊設備借用</div>
+              <div class="text-xs text-slate-500 mt-0.5">指令：#查設備（查看 iPad 車、筆電等當日登記）</div>
+            </div>
+            <i class="fa-solid fa-chevron-right text-slate-300 group-hover:text-sky-600 text-xs transition"></i>
+          </button>
+
+          <button onclick="simulateQuery('venue')" class="w-full text-left p-4 bg-white hover:bg-indigo-50 border border-slate-200 hover:border-indigo-300 rounded-2xl shadow-sm transition flex items-center justify-between group">
+            <div>
+              <div class="font-bold text-slate-900 group-hover:text-indigo-600 text-sm">🏛️ 查詢校園場地借用現況</div>
+              <div class="text-xs text-slate-500 mt-0.5">指令：#查場地（查看電腦教室、會議室等時段）</div>
+            </div>
+            <i class="fa-solid fa-chevron-right text-slate-300 group-hover:text-indigo-600 text-xs transition"></i>
+          </button>
+
+          <button onclick="simulateQuery('stats')" class="w-full text-left p-4 bg-white hover:bg-emerald-50 border border-slate-200 hover:border-emerald-300 rounded-2xl shadow-sm transition flex items-center justify-between group">
+            <div>
+              <div class="font-bold text-slate-900 group-hover:text-emerald-600 text-sm">📊 查詢個人本學期借用統計</div>
+              <div class="text-xs text-slate-500 mt-0.5">指令：#查個人 陳乃誠（統計累計次數與設備分佈）</div>
+            </div>
+            <i class="fa-solid fa-chevron-right text-slate-300 group-hover:text-emerald-600 text-xs transition"></i>
+          </button>
+
+          <button onclick="simulateQuery('sync')" class="w-full text-left p-4 bg-white hover:bg-amber-50 border border-slate-200 hover:border-amber-300 rounded-2xl shadow-sm transition flex items-center justify-between group">
+            <div>
+              <div class="font-bold text-slate-900 group-hover:text-amber-600 text-sm">🔄 手動觸發學校 API 同步</div>
+              <div class="text-xs text-slate-500 mt-0.5">指令：#同步（強制從校內系統拉取最新變更）</div>
+            </div>
+            <i class="fa-solid fa-chevron-right text-slate-300 group-hover:text-amber-600 text-xs transition"></i>
+          </button>
+
+          <button onclick="simulateQuery('natural')" class="w-full text-left p-4 bg-white hover:bg-purple-50 border border-slate-200 hover:border-purple-300 rounded-2xl shadow-sm transition flex items-center justify-between group">
+            <div>
+              <div class="font-bold text-slate-900 group-hover:text-purple-600 text-sm">🤖 自然語言詢問 (Gemini AI)</div>
+              <div class="text-xs text-slate-500 mt-0.5">提問：今天下午第5節電腦教室一有人借嗎？借鑰匙要去哪？</div>
+            </div>
+            <i class="fa-solid fa-chevron-right text-slate-300 group-hover:text-purple-600 text-xs transition"></i>
+          </button>
+        </div>
+
+        <!-- Right Phone Mockup -->
+        <div class="lg:col-span-6 flex justify-center">
+          <div class="w-full max-w-[380px] bg-slate-900 p-3.5 rounded-[44px] shadow-2xl border-4 border-slate-800">
+            <!-- Screen -->
+            <div class="bg-[#8cabd9] rounded-[34px] overflow-hidden flex flex-col h-[540px]">
+              
+              <!-- Phone Header -->
+              <div class="bg-[#24344d] text-white px-4 py-3 flex items-center justify-between shadow">
+                <div class="flex items-center space-x-2">
+                  <div class="w-8 h-8 rounded-full bg-sky-500 flex items-center justify-center text-xs font-bold">
+                    <i class="fa-solid fa-laptop-file"></i>
+                  </div>
+                  <div>
+                    <div class="text-xs font-bold leading-none">校園借用小幫手</div>
+                    <div class="text-[10px] text-sky-200 mt-0.5">光明國中教務處資訊組</div>
+                  </div>
+                </div>
+                <div class="flex space-x-2 text-xs text-slate-300">
+                  <i class="fa-solid fa-magnifying-glass"></i>
+                  <i class="fa-solid fa-bars"></i>
+                </div>
+              </div>
+
+              <!-- Message Stream -->
+              <div id="chatStream" class="flex-1 p-3 space-y-3 overflow-y-auto text-xs leading-relaxed">
+                <div class="text-center text-[10px] text-slate-600 my-1">2026年9月10日 星期四</div>
+                
+                <!-- Initial Welcome -->
+                <div class="flex items-start space-x-2">
+                  <div class="w-7 h-7 rounded-full bg-sky-600 text-white flex items-center justify-center text-[10px] shrink-0">
+                    <i class="fa-solid fa-robot"></i>
+                  </div>
+                  <div class="bg-white p-3 chat-bubble-bot text-slate-800 shadow-sm max-w-[85%] space-y-1">
+                    <p class="font-bold text-sky-700">您好！我是校園借用小幫手 💻</p>
+                    <p>您可以隨時問我學校設備、電腦教室與會議室的登記情況，或是輸入「#查個人 [姓名]」查看您本學期的借用紀錄！</p>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Phone Input Mock -->
+              <div class="bg-white p-2.5 flex items-center space-x-2 border-t border-slate-200">
+                <div class="text-slate-400 text-sm px-1"><i class="fa-solid fa-plus"></i></div>
+                <div class="flex-1 bg-slate-100 rounded-full px-3 py-1.5 text-xs text-slate-400 flex items-center justify-between">
+                  <span>輸入訊息或指令...</span>
+                  <i class="fa-regular fa-face-smile"></i>
+                </div>
+                <div class="w-7 h-7 rounded-full bg-sky-600 text-white flex items-center justify-center text-xs">
+                  <i class="fa-solid fa-paper-plane"></i>
+                </div>
+              </div>
+
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- Interactive Configurator -->
+  <section id="configurator" class="py-20 bg-white border-t border-slate-200">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="text-center max-w-2xl mx-auto mb-12 space-y-3">
+        <div class="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-sky-100 text-sky-800 text-xs font-bold">
+          <i class="fa-solid fa-sliders"></i>
+          <span>客製化程式碼產生器</span>
+        </div>
+        <p class="text-3xl font-black text-slate-900 tracking-tight">填入學校參數，一鍵生成 Code.gs</p>
+        <p class="text-slate-600 text-sm">輸入您的金鑰與學校設定，系統將即時組裝出完整的 Google Apps Script 原始碼供您複製！</p>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+        
+        <!-- Config Form -->
+        <div class="lg:col-span-5 bg-slate-50 p-6 sm:p-8 rounded-3xl border border-slate-200 space-y-4">
+          <h3 class="text-base font-black text-slate-900 flex items-center gap-2">
+            <i class="fa-solid fa-gear text-sky-600"></i>
+            <span>基本設定參數</span>
+          </h3>
+
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">學校名稱</label>
+            <input type="text" id="cfg_school" value="竹光國民中學" class="w-full px-3.5 py-2 rounded-xl border border-slate-300 text-xs font-semibold focus:ring-2 focus:ring-sky-500 focus:outline-none" oninput="updateGeneratedCode()">
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">主責單位名稱</label>
+            <input type="text" id="cfg_unit" value="教務處資訊組" class="w-full px-3.5 py-2 rounded-xl border border-slate-300 text-xs font-semibold focus:ring-2 focus:ring-sky-500 focus:outline-none" oninput="updateGeneratedCode()">
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">機器人稱呼 (BOT_NAME)</label>
+            <input type="text" id="cfg_botname" value="校園借用小幫手" class="w-full px-3.5 py-2 rounded-xl border border-slate-300 text-xs font-semibold focus:ring-2 focus:ring-sky-500 focus:outline-none" oninput="updateGeneratedCode()">
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">管理單位聯絡電話 / 分機</label>
+            <input type="text" id="cfg_contact" value="資訊組分機 215 / 設備組分機 214" class="w-full px-3.5 py-2 rounded-xl border border-slate-300 text-xs font-semibold focus:ring-2 focus:ring-sky-500 focus:outline-none" oninput="updateGeneratedCode()">
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">本學期起算日 (YYYY-MM-DD)</label>
+            <input type="text" id="cfg_semester" value="2026-08-30" class="w-full px-3.5 py-2 rounded-xl border border-slate-300 text-xs font-mono font-semibold focus:ring-2 focus:ring-sky-500 focus:outline-none" oninput="updateGeneratedCode()">
+            <span class="text-[10px] text-slate-500 mt-0.5 block">用於個人本學期借用累計次數統計</span>
+          </div>
+
+          <div class="pt-2 border-t border-slate-200">
+            <label class="block text-xs font-bold text-slate-700 mb-1">學校借用系統 API 網址 (可選)</label>
+            <input type="text" id="cfg_api_url" placeholder="https://your-school.edu.tw/api/bookings" class="w-full px-3.5 py-2 rounded-xl border border-slate-300 text-xs font-mono focus:ring-2 focus:ring-sky-500 focus:outline-none" oninput="updateGeneratedCode()">
+            <span class="text-[10px] text-slate-500 mt-0.5 block">留空時將直接使用 Google 試算表作為資料庫</span>
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">線上借用系統前台網址 (可選)</label>
+            <input type="text" id="cfg_web_url" placeholder="https://your-school.edu.tw/booking" class="w-full px-3.5 py-2 rounded-xl border border-slate-300 text-xs font-mono focus:ring-2 focus:ring-sky-500 focus:outline-none" oninput="updateGeneratedCode()">
+          </div>
+
+          <div class="pt-2 border-t border-slate-200">
+            <label class="block text-xs font-bold text-slate-700 mb-1">Gemini API Key</label>
+            <input type="password" id="cfg_gemini_key" placeholder="AIzaSy..." class="w-full px-3.5 py-2 rounded-xl border border-slate-300 text-xs font-mono focus:ring-2 focus:ring-sky-500 focus:outline-none" oninput="updateGeneratedCode()">
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">LINE Channel Access Token</label>
+            <input type="password" id="cfg_line_token" placeholder="eyJhbGci..." class="w-full px-3.5 py-2 rounded-xl border border-slate-300 text-xs font-mono focus:ring-2 focus:ring-sky-500 focus:outline-none" oninput="updateGeneratedCode()">
+          </div>
+
+        </div>
+
+        <!-- Generated Code Preview -->
+        <div class="lg:col-span-7 space-y-3">
+          <div class="flex items-center justify-between bg-slate-900 text-white px-5 py-3 rounded-t-2xl">
+            <div class="flex items-center space-x-2">
+              <span class="w-3 h-3 rounded-full bg-rose-500 inline-block"></span>
+              <span class="w-3 h-3 rounded-full bg-amber-500 inline-block"></span>
+              <span class="w-3 h-3 rounded-full bg-emerald-500 inline-block"></span>
+              <span class="text-xs font-mono text-slate-300 ml-2">Code.gs (即時生成)</span>
+            </div>
+            <button onclick="copyGeneratedCode()" class="px-3.5 py-1.5 rounded-lg bg-sky-600 hover:bg-sky-500 text-white text-xs font-bold transition flex items-center space-x-1.5 shadow">
+              <i class="fa-regular fa-copy" id="copyIcon"></i>
+              <span id="copyBtnText">複製全部程式碼</span>
+            </button>
+          </div>
+          <div class="bg-slate-950 p-4 rounded-b-2xl border border-slate-800 text-slate-200 font-mono text-[11px] overflow-x-auto max-h-[560px]">
+            <pre><code id="codeDisplay"></code></pre>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- Deployment Guide -->
+  <section id="deploy" class="py-20 bg-slate-50 border-t border-slate-200">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="text-center max-w-2xl mx-auto mb-16 space-y-3">
+        <h2 class="text-xs font-bold uppercase tracking-widest text-sky-600">Deployment Steps</h2>
+        <p class="text-3xl font-black text-slate-900 tracking-tight">四步驟完成校園 LINE 借用小幫手架設</p>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+        
+        <!-- Step 1 -->
+        <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm relative space-y-3">
+          <div class="w-8 h-8 rounded-full bg-sky-100 text-sky-700 font-black text-sm flex items-center justify-center">1</div>
+          <h3 class="font-bold text-slate-900 text-base">建立試算表貼上程式碼</h3>
+          <p class="text-xs text-slate-600 leading-relaxed">
+            新建 Google 試算表，點擊選單「擴充功能」➔「Apps Script」，將上方生成的 <code class="text-sky-700 bg-sky-50 px-1 py-0.5 rounded">Code.gs</code> 貼上並儲存。
+          </p>
+        </div>
+
+        <!-- Step 2 -->
+        <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm relative space-y-3">
+          <div class="w-8 h-8 rounded-full bg-sky-100 text-sky-700 font-black text-sm flex items-center justify-center">2</div>
+          <h3 class="font-bold text-slate-900 text-base">執行一鍵初始化</h3>
+          <p class="text-xs text-slate-600 leading-relaxed">
+            在 Apps Script 函式下拉選單中選擇 <code class="text-sky-700 bg-sky-50 px-1 py-0.5 rounded">initBookingSystemSheet</code> 並點擊「執行」，自動為試算表建立借用總表、設備清單與示範資料！
+          </p>
+        </div>
+
+        <!-- Step 3 -->
+        <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm relative space-y-3">
+          <div class="w-8 h-8 rounded-full bg-sky-100 text-sky-700 font-black text-sm flex items-center justify-center">3</div>
+          <h3 class="font-bold text-slate-900 text-base">部署為網頁並綁定 Webhook</h3>
+          <p class="text-xs text-slate-600 leading-relaxed">
+            點擊「部署」➔「新增部署作業」，類型選擇「網頁應用程式」，存取權選「所有人」，複製產出的網址貼至 LINE Developers 後台的 Webhook URL。
+          </p>
+        </div>
+
+        <!-- Step 4 -->
+        <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm relative space-y-3">
+          <div class="w-8 h-8 rounded-full bg-sky-100 text-sky-700 font-black text-sm flex items-center justify-center">4</div>
+          <h3 class="font-bold text-slate-900 text-base">設定每日定時同步排程</h3>
+          <p class="text-xs text-slate-600 leading-relaxed">
+            在 Apps Script 左側點擊鬧鐘圖示「觸發條件」，新增一個「時間驅動」觸發器，指定每天早上 07:00 執行 <code class="text-sky-700 bg-sky-50 px-1 py-0.5 rounded">dailySyncBookingApi</code> 即可自動同步！
+          </p>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="bg-slate-900 text-slate-400 py-12 border-t border-slate-800 text-xs">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-6">
+      <div class="space-y-1 text-center sm:text-left">
+        <div class="font-bold text-white text-sm">BookingBot・校園資訊設備與場地借用 LINE 智慧小幫手</div>
+        <p>開源公益專案・採用 MIT License・由新竹市立竹光國中 陳乃誠 (大乃老師) 與 AI 開源社群發起</p>
+      </div>
+      <div class="flex items-center space-x-6 font-semibold">
+        <a href="https://github.com/hk6429/booking-linebot-template" target="_blank" class="hover:text-white transition">GitHub Repo</a>
+        <a href="#configurator" class="hover:text-white transition">程式碼產生器</a>
+        <a href="#simulator" class="hover:text-white transition">LINE 模擬器</a>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Interactive Simulator & Configurator Logic -->
+  <script>
+    // Simulator Logic
+    const simulatorResponses = {
+      equipment: {
+        user: "#查設備",
+        bot: `💻 【今日 (2026-09-10) 資訊設備借用明細】\n共 2 筆借用預約：\n\n1. 【iPad 行動學習車 A】\n   👤 借用老師：陳乃誠\n   🕒 借用節次：第 1、2 節\n   📌 狀態：借用中\n\n2. 【Chromebook 移動車】\n   👤 借用老師：張雅晴\n   🕒 借用節次：第 5、6 節\n   📌 狀態：已預約登記\n\n💡 溫馨提醒：課堂使用完畢請協助清點配件（充電線、觸控筆），並於放學前歸還至資訊組充電。`
+      },
+      venue: {
+        user: "#查場地",
+        bot: `🏛️ 【今日 (2026-09-10) 校園場地預約排程】\n共 2 筆場地登記：\n\n1. 【電腦教室 (一)】\n   👤 使用人：林志強\n   🕒 時段：第 3、4 節\n   📌 狀態：已預約登記\n\n2. 【第一會議室】\n   👤 使用人：教務主任\n   🕒 時段：第 7 節\n   📌 狀態：已預約登記\n\n💡 提醒：借用電腦教室、創客教室請於前一日領取鑰匙；使用後請務必關閉冷氣電源並上鎖。`
+      },
+      stats: {
+        user: "#查個人 陳乃誠",
+        bot: `📊 【個人借用紀錄統計報告】\n👤 查詢教席：陳乃誠 老師\n📅 統計區間：本學期 (2026-08-30 至今)\n\n📈 【學期借用總計】：共 5 次\n\n📦 【借用品項與次數排行】：\n• iPad 行動學習車 A：共借用 3 次\n• 電腦教室 (一)：共借用 1 次\n• 4K 活動錄影單眼相機：共借用 1 次\n\n🕒 【最近 5 次借用軌跡】：\n• 2026-09-11（第 3、4 節）：4K 活動錄影單眼相機 [已預約登記]\n• 2026-09-10（第 1、2 節）：iPad 行動學習車 A [借用中]\n• 2026-09-09（第 5、6 節）：iPad 行動學習車 A [已歸還]\n• 2026-09-09（第 7 節）：電腦教室 (一) [已歸還]\n• 2026-09-03（第 2、3 節）：iPad 行動學習車 A [已歸還]\n\n🔔 【今日預約提醒】：\n您今天有預約「iPad 行動學習車 A (第 1、2 節)」，請記得至資訊組領取或按時前往使用喔！`
+      },
+      sync: {
+        user: "#同步",
+        bot: `🔄 【借用資料同步完成】\n• 成功更新筆數：10 筆\n• 抓取來源：校園借用系統 API\n• 更新時間：2026-09-10 14:15:30\n\n您現在可輸入「#查設備」或「#查場地」查看最新預約狀態！`
+      },
+      natural: {
+        user: "今天下午第5節電腦教室一有人借嗎？借鑰匙要去哪？",
+        bot: `陳老師您好！為您查詢電腦教室(一)今天的排程：\n\n🏛️ 【電腦教室(一) 今日使用狀況】：\n• 第 3、4 節：林志強老師（七年級科技課）\n• 下午第 5 節：目前「尚無人預約登記」，空檔可供使用！\n\n🔑 【鑰匙借還指引】：\n電腦教室鑰匙請於上課前至「守衛室或總務處」領取登記，使用完畢請確認電腦正常關機並隨手鎖門，感謝您的配合！`
+      }
+    };
+
+    function simulateQuery(type) {
+      const data = simulatorResponses[type];
+      if (!data) return;
+
+      const chat = document.getElementById('chatStream');
+
+      // Add user message
+      const userHtml = `
+        <div class="flex justify-end">
+          <div class="bg-[#5978b8] text-white p-2.5 chat-bubble-user max-w-[85%] shadow-sm">
+            <p>${data.user}</p>
+          </div>
+        </div>
+      `;
+      chat.insertAdjacentHTML('beforeend', userHtml);
+      chat.scrollTop = chat.scrollHeight;
+
+      // Add bot reply with slight delay
+      setTimeout(() => {
+        const botHtml = `
+          <div class="flex items-start space-x-2">
+            <div class="w-7 h-7 rounded-full bg-sky-600 text-white flex items-center justify-center text-[10px] shrink-0">
+              <i class="fa-solid fa-robot"></i>
+            </div>
+            <div class="bg-white p-3 chat-bubble-bot text-slate-800 shadow-sm max-w-[85%] space-y-1 whitespace-pre-line">
+              ${data.bot}
+            </div>
+          </div>
+        `;
+        chat.insertAdjacentHTML('beforeend', botHtml);
+        chat.scrollTop = chat.scrollHeight;
+      }, 350);
+    }
+
+    // Configurator Logic
+    function getFormValues() {
+      return {
+        school: document.getElementById('cfg_school').value.trim() || '竹光國民中學',
+        unit: document.getElementById('cfg_unit').value.trim() || '教務處資訊組',
+        botname: document.getElementById('cfg_botname').value.trim() || '校園借用小幫手',
+        contact: document.getElementById('cfg_contact').value.trim() || '資訊組分機 215 / 設備組分機 214',
+        semester: document.getElementById('cfg_semester').value.trim() || '2026-08-30',
+        apiUrl: document.getElementById('cfg_api_url').value.trim() || '',
+        webUrl: document.getElementById('cfg_web_url').value.trim() || '',
+        geminiKey: document.getElementById('cfg_gemini_key').value.trim() || '填入您的_GEMINI_API_KEY',
+        lineToken: document.getElementById('cfg_line_token').value.trim() || '填入您的_LINE_CHANNEL_ACCESS_TOKEN'
+      };
+    }
+
+    function buildCodeString(v) {
+      return `/**
+ * ============================================================================
+ * 🏫 全國校園資訊設備與場地借用小幫手 LINE Bot・通用開源範本 (GAS + Gemini RAG)
+ * ============================================================================
+ */
+
+const CONFIG = {
+  GEMINI_API_KEY: '${v.geminiKey}',
+  LINE_ACCESS_TOKEN: '${v.lineToken}',
+
+  SCHOOL_NAME: '${v.school}',
+  UNIT_NAME: '${v.unit}',
+  BOT_NAME: '${v.botname}',
+  ADMIN_CONTACT: '${v.contact}',
+  SEMESTER_START_DATE: '${v.semester}',
+
+  BOOKING_API_URL: '${v.apiUrl}',
+  BOOKING_WEB_URL: '${v.webUrl}',
+
+  SHEET_BOOKINGS: '借用記錄總表',
+  SHEET_EQUIPMENT: '設備清單',
+  SHEET_VENUES: '場地清單',
+  SHEET_FAQ: '借用規章與常見問答',
+  SHEET_LOGS: '查詢與操作紀錄',
+  ADMIN_PASSWORD: ''
+};
+
+// ...（其餘 600 行完整邏輯已內建於開源庫 Code.gs）...
+// 包含 dailySyncBookingApi()、handleEquipmentQuery()、handleVenueQuery() 與 handleTeacherStatsQuery()`;
+    }
+
+    // Full Code for clipboard
+    let fullRawCode = "";
+
+    function updateGeneratedCode() {
+      const v = getFormValues();
+      const preview = buildCodeString(v);
+      document.getElementById('codeDisplay').textContent = preview;
+    }
+
+    async function loadFullCodeAndInit() {
+      try {
+        const resp = await fetch('Code.gs');
+        if (resp.ok) {
+          fullRawCode = await resp.text();
+        }
+      } catch(e) {
+        console.warn('Could not fetch Code.gs directly:', e);
+      }
+      updateGeneratedCode();
+    }
+
+    function copyGeneratedCode() {
+      const v = getFormValues();
+      let targetCode = fullRawCode;
+      if (!targetCode) {
+        targetCode = document.getElementById('codeDisplay').textContent;
+      } else {
+        // Replace config fields in full code
+        targetCode = targetCode.replace(/GEMINI_API_KEY:\s*'.*?'/, `GEMINI_API_KEY: '${v.geminiKey}'`);
+        targetCode = targetCode.replace(/LINE_ACCESS_TOKEN:\s*'.*?'/, `LINE_ACCESS_TOKEN: '${v.lineToken}'`);
+        targetCode = targetCode.replace(/SCHOOL_NAME:\s*'.*?'/, `SCHOOL_NAME: '${v.school}'`);
+        targetCode = targetCode.replace(/UNIT_NAME:\s*'.*?'/, `UNIT_NAME: '${v.unit}'`);
+        targetCode = targetCode.replace(/BOT_NAME:\s*'.*?'/, `BOT_NAME: '${v.botname}'`);
+        targetCode = targetCode.replace(/ADMIN_CONTACT:\s*'.*?'/, `ADMIN_CONTACT: '${v.contact}'`);
+        targetCode = targetCode.replace(/SEMESTER_START_DATE:\s*'.*?'/, `SEMESTER_START_DATE: '${v.semester}'`);
+        targetCode = targetCode.replace(/BOOKING_API_URL:\s*'.*?'/, `BOOKING_API_URL: '${v.apiUrl}'`);
+        targetCode = targetCode.replace(/BOOKING_WEB_URL:\s*'.*?'/, `BOOKING_WEB_URL: '${v.webUrl}'`);
+      }
+
+      navigator.clipboard.writeText(targetCode).then(() => {
+        const btnText = document.getElementById('copyBtnText');
+        const icon = document.getElementById('copyIcon');
+        btnText.textContent = '已成功複製完整 Code.gs！';
+        icon.className = 'fa-solid fa-check text-emerald-300';
+        setTimeout(() => {
+          btnText.textContent = '複製全部程式碼';
+          icon.className = 'fa-regular fa-copy';
+        }, 2500);
+      });
+    }
+
+    window.addEventListener('DOMContentLoaded', loadFullCodeAndInit);
+  </script>
+
+</body>
+</html>
+"""
+
+with open("index.html", "w", encoding="utf-8") as f:
+    f.write(HTML_TEMPLATE)
+
+print("index.html generated successfully!")
